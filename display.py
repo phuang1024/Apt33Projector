@@ -1,17 +1,53 @@
+import json
 import time
 from threading import Thread
 
+import cv2
 import numpy as np
 import pygame
-import pygame.gfxdraw
 
 pygame.init()
 
-# Constants for board projection
-X_INTERVAL = 12 * 3**0.5 / 2
-Y_INTERVAL = 12
-OFFSET = (50, 50)
-RADIUS = 4
+
+class DrawParams:
+    """
+    Constants for board projection.
+    """
+    x_ival = 12 * 3**0.5 / 2
+    y_ival = 12
+    x_offset = 0
+    y_offset = 0
+    radius = 4
+    rotation = 0
+    x_persp = 0
+    y_persp = 0
+    x_stretch = 0
+
+    attrs = [
+        "x_ival",
+        "y_ival",
+        "x_offset",
+        "y_offset",
+        "radius",
+        "rotation",
+        "x_persp",
+        "y_persp",
+        "x_stretch",
+    ]
+
+    def save(self, path):
+        data = {}
+        for attr in self.attrs:
+            data[attr] = getattr(self, attr)
+        with open(path, "w") as f:
+            json.dump(data, f, indent=4)
+
+    def load(self, path):
+        with open(path, "r") as f:
+            data = json.load(f)
+        for attr in self.attrs:
+            if attr in data:
+                setattr(self, attr, data[attr])
 
 
 class Display:
@@ -20,8 +56,11 @@ class Display:
         self.run = True
 
         self.window = pygame.display.set_mode((1280, 720), pygame.FULLSCREEN)
+        self.params = DrawParams()
 
         self.daemons = []
+        # Append to this externally. Each func is called with (self, event.key)
+        self.keydown_hooks = []
 
     def start(self):
         """
@@ -35,6 +74,8 @@ class Display:
                 elif event.type == pygame.KEYDOWN:
                     if event.key in (pygame.K_ESCAPE, pygame.K_q):
                         self.run = False
+                    for hook in self.keydown_hooks:
+                        hook(self, event.key)
 
             self.draw_board()
             pygame.display.flip()
@@ -44,17 +85,49 @@ class Display:
             daemon.join()
 
     def draw_board(self):
-        self.window.fill((0, 0, 0))
+        params = self.params
+        width = self.window.get_width()
+        height = self.window.get_height()
 
+        total_width = 81 * params.x_ival
+        total_height = 27 * params.y_ival
+        offset_x = (width - total_width) / 2 + params.x_offset
+        offset_y = (height - total_height) / 2 + params.y_offset
+
+        raw_img = np.zeros((height, width, 3), dtype=np.uint8)
         for grid_x in range(81):
-            px_x = grid_x * X_INTERVAL + OFFSET[0]
+            px_x = grid_x * params.x_ival + np.sin(grid_x / 40 * np.pi) * params.x_stretch + offset_x
             for grid_y in range(27):
-                px_y = grid_y * Y_INTERVAL + OFFSET[1]
+                px_y = grid_y * params.y_ival + offset_y
                 if grid_x % 2 == 0:
-                    px_y += Y_INTERVAL // 2
+                    px_y += params.y_ival // 2
+
                 color = (255, 255, 255) if self.board[grid_y, grid_x] else (0, 0, 0)
-                pygame.gfxdraw.filled_circle(self.window, int(px_x), int(px_y), RADIUS, color)
-                pygame.gfxdraw.aacircle(self.window, int(px_x), int(px_y), RADIUS, color)
+                cv2.circle(raw_img, (int(px_x), int(px_y)), int(params.radius), color, -1, cv2.LINE_AA)
+
+        # Warp perspective
+        from_pts = np.array([
+            [0, 0],
+            [width, 0],
+            [0, height],
+            [width, height]
+        ], dtype=np.float32)
+        to_pts = np.array([
+            [-params.x_persp, -params.y_persp],
+            [width + params.x_persp, params.y_persp],
+            [params.x_persp, height + params.y_persp],
+            [width - params.x_persp, height - params.y_persp]
+        ], dtype=np.float32)
+        trans = cv2.getPerspectiveTransform(from_pts, to_pts)
+        img = cv2.warpPerspective(raw_img, trans, (width, height))
+
+        trans_rot = cv2.getRotationMatrix2D((width // 2, height // 2), params.rotation, 1)
+        img = cv2.warpAffine(img, trans_rot, (width, height))
+
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = img.swapaxes(0, 1)
+        img = pygame.surfarray.make_surface(img)
+        self.window.blit(img, (0, 0))
 
     def add_daemon(self, func, args):
         """
