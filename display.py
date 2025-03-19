@@ -17,27 +17,27 @@ class DrawParams:
     """
     Constants for board projection.
     """
-    x_ival = 12 * 3**0.5 / 2
-    y_ival = 12
-    x_offset = 0
-    y_offset = 0
-    radius = 4
-    rotation = 0
-    x_persp = 0
-    y_persp = 0
-    x_stretch = 0
+    radius: float
+    # (y, x) positions
+    tl: tuple[float, float]
+    tr: tuple[float, float]
+    br: tuple[float, float]
+    bl: tuple[float, float]
 
     attrs = [
-        "x_ival",
-        "y_ival",
-        "x_offset",
-        "y_offset",
         "radius",
-        "rotation",
-        "x_persp",
-        "y_persp",
-        "x_stretch",
+        "tl",
+        "tr",
+        "br",
+        "bl",
     ]
+
+    def __init__(self):
+        self.radius = 3
+        self.tl = (100, 100)
+        self.tr = (100, 500)
+        self.br = (300, 500)
+        self.bl = (300, 100)
 
     def save(self, path):
         data = {}
@@ -101,43 +101,41 @@ class Display:
         width = self.window.get_width()
         height = self.window.get_height()
 
-        total_width = 81 * params.x_ival
-        total_height = 27 * params.y_ival
-        offset_x = (width - total_width) / 2 + params.x_offset
-        offset_y = (height - total_height) / 2 + params.y_offset
+        y_ival = 9
+        x_ival = y_ival * 3**0.5 / 2
+        total_width = 81 * x_ival
+        total_height = 27 * y_ival
+        offset_x = (width - total_width) / 2
+        offset_y = (height - total_height) / 2
 
         raw_img = np.zeros((height, width, 3), dtype=np.uint8)
         for grid_x in range(81):
-            px_x = grid_x * params.x_ival + np.sin(grid_x / 40 * np.pi) * params.x_stretch + offset_x
+            px_x = grid_x * x_ival + offset_x
             for grid_y in range(27):
-                px_y = grid_y * params.y_ival + offset_y
+                px_y = grid_y * y_ival + offset_y
                 if grid_x % 2 == 0:
-                    px_y += params.y_ival // 2
+                    px_y += y_ival // 2
 
                 color = (255, 255, 255) if self.board[grid_y, grid_x] else (0, 0, 0)
                 cv2.circle(raw_img, (int(px_x), int(px_y)), int(params.radius), color, -1, cv2.LINE_AA)
 
         # Warp perspective
+        min_x = offset_x
+        max_x = 80 * x_ival + offset_x
+        min_y = offset_y
+        max_y = 26 * y_ival + offset_y
         from_pts = np.array([
-            [0, 0],
-            [width, 0],
-            [0, height],
-            [width, height]
+            [min_x, min_y],
+            [max_x, min_y],
+            [max_x, max_y],
+            [min_x, max_y],
         ], dtype=np.float32)
-        to_pts = np.array([
-            [-params.x_persp, -params.y_persp],
-            [width + params.x_persp, params.y_persp],
-            [params.x_persp, height + params.y_persp],
-            [width - params.x_persp, height - params.y_persp]
-        ], dtype=np.float32)
+        to_pts = np.array([params.tl, params.tr, params.br, params.bl], dtype=np.float32)
         trans = cv2.getPerspectiveTransform(from_pts, to_pts)
         img = cv2.warpPerspective(raw_img, trans, (width, height))
 
-        trans_rot = cv2.getRotationMatrix2D((width // 2, height // 2), params.rotation, 1)
-        img = cv2.warpAffine(img, trans_rot, (width, height))
-
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = img.swapaxes(0, 1)
+        #img = img.swapaxes(0, 1)
         img = pygame.surfarray.make_surface(img)
         self.window.blit(img, (0, 0))
 

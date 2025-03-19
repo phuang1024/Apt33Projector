@@ -2,60 +2,89 @@
 Live adjust display parameters. Live save to file.
 
 Keybinds:
-Pressing corresponding key increases value.
-Ctrl pressing key decreases value.
-Shift pressing changes in small increments.
+Use QWSA to select the four corners.
+Use arrow keys to drag the selected corner.
+Hold shift to move slower, and ctrl to move faster.
+Use RF to increase and decrease radius, respectively.
 """
+
+import time
 
 import numpy as np
 import pygame
 
 from display import Display
-from random_bw import random_bw
 
-KEY_ATTRS = {
-    pygame.K_s: "radius",
-    pygame.K_r: "rotation",
-    pygame.K_x: "x_ival",
-    pygame.K_y: "y_ival",
-    pygame.K_UP: "y_offset",
-    pygame.K_RIGHT: "x_offset",
-    pygame.K_p: "x_persp",
-    pygame.K_o: "y_persp",
-    pygame.K_z: "x_stretch",
-}
+selection = 0
 
 
 def key_handler(disp: Display, key):
-    key_pressed = pygame.key.get_pressed()
-    shift = key_pressed[pygame.K_LSHIFT] or key_pressed[pygame.K_RSHIFT]
-    ctrl = key_pressed[pygame.K_LCTRL] or key_pressed[pygame.K_RCTRL]
+    global selection
 
-    if key in KEY_ATTRS:
-        attr = KEY_ATTRS[key]
-        value = getattr(disp.params, attr)
-        if attr in ("x_persp", "y_persp", "x_offset", "y_offset"):
-            delta = 10
+    if key == pygame.K_q:
+        selection = 0
+    elif key == pygame.K_w:
+        selection = 1
+    elif key == pygame.K_s:
+        selection = 2
+    elif key == pygame.K_a:
+        selection = 3
+
+    disp.params.save("disp.json")
+
+
+def draw_daemon(disp: Display):
+    iter = 0
+    while disp.run:
+        disp.board = np.ones_like(disp.board, dtype=bool)
+        if selection == 0:
+            index = (0, 0)
+        elif selection == 1:
+            index = (0, -1)
+        elif selection == 2:
+            index = (-1, -1)
+        elif selection == 3:
+            index = (-1, 0)
         else:
-            delta = 0.1
+            raise ValueError("Invalid selection")
+        disp.board[index] = iter % 2
+
+        iter += 1
+        time.sleep(0.2)
+
+
+def keypress_daemon(disp: Display):
+    while disp.run:
+        keys = pygame.key.get_pressed()
+        shift = keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]
+        ctrl = keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]
+
+        attr = ["tl", "tr", "br", "bl"][selection]
+        value = getattr(disp.params, attr)
+        delta = np.array([0, 0], dtype=float)
+        if keys[pygame.K_UP]:
+            delta[0] += -1
+        if keys[pygame.K_DOWN]:
+            delta[0] += 1
+        if keys[pygame.K_LEFT]:
+            delta[1] += -1
+        if keys[pygame.K_RIGHT]:
+            delta[1] += 1
         if shift:
             delta *= 0.1
         if ctrl:
-            delta *= -1
-        new_value = value + delta
-        setattr(disp.params, attr, new_value)
+            delta *= 10
+        value = value + delta
+        setattr(disp.params, attr, (value[0], value[1]))
 
-        print(f"{attr} = {new_value}")
-
-        # Save to file
-        disp.params.save("disp.json")
+        time.sleep(0.05)
 
 
 def main():
     disp = Display()
 
-    disp.board = np.ones_like(disp.board, dtype=bool)
-    #disp.add_daemon(random_bw, (disp,))
+    disp.add_daemon(draw_daemon, (disp,))
+    disp.add_daemon(keypress_daemon, (disp,))
     disp.keydown_hooks.append(key_handler)
 
     disp.start()
