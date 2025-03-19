@@ -1,5 +1,5 @@
 """
-Cool text animations of Ultimate and I.
+Cool repeating text animations of Ultimate and I.
 """
 
 import math
