@@ -1,3 +1,7 @@
+"""
+Testing script: Random black and white pixels
+"""
+
 import time
 
 import numpy as np

@@ -1,3 +1,7 @@
+"""
+Implementation of pygame and display math.
+"""
+
 import json
 import time
 from threading import Thread
@@ -75,7 +79,7 @@ class Display:
         Blocking (pygame needs main thread).
         """
         while self.run:
-            time.sleep(1 / 60)
+            time.sleep(1 / 140)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.run = False

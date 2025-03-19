@@ -1,3 +1,8 @@
+"""
+Interactively make pixel art.
+"""
+
+import os
 import time
 
 import numpy as np
@@ -6,7 +11,12 @@ import pygame
 from display import Display
 
 cursor = [0, 0]
-board = np.zeros((27, 81), dtype=bool)
+if os.path.isfile("board.npy"):
+    board = np.load("board.npy")
+    assert board.shape == (27, 81)
+    assert board.dtype == bool
+else:
+    board = np.zeros((27, 81), dtype=bool)
 
 
 def key_handler(disp: Display, key):
