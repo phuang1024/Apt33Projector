@@ -17,7 +17,7 @@ def generate_border(text: np.ndarray) -> np.ndarray:
         for y in range(text.shape[0]):
             for dx in [-1, 0, 1]:
                 for dy in [-1, 0, 1]:
-                    if (0 <= x + dx < text.shape[1]) and (0 <= y + dy < text.shape[0]):
+                    if (0 <= x + dx < text.shape[1]) and (0 <= y + dy < text.shape[0]) and not (dx == 0 and dy == 0):
                         if text[y + dy, x + dx]:
                             border[y, x] = True
 
@@ -79,14 +79,15 @@ def falling_columns(disp: Display, text, interval=0.02, disappear=False):
                 time.sleep(interval)
 
 
-def floodfill(disp: Display, text, interval=0.03, disappear=False):
+def floodfill(disp: Display, text, interval=0.03, disappear=False, bfs=False):
     text = text.copy()
     while text.any():
         stack = []
         where = np.where(text)
         stack.append((where[0][0], where[1][0]))
         while stack:
-            y, x = stack.pop()
+            index = 0 if bfs else -1
+            y, x = stack.pop(index)
             if text[y, x]:
                 text[y, x] = False
                 disp.board[y, x] = not disappear
@@ -103,7 +104,7 @@ def floodfill(disp: Display, text, interval=0.03, disappear=False):
 def matrix(disp: Display, text_negative, interval=0.05):
     source = np.zeros([disp.board.shape[1]], dtype=int)
     image = np.zeros_like(disp.board, dtype=bool)
-    density = 0.1
+    density = 0.05
 
     total_iters = random.randint(200, 400)
     for i in range(total_iters):
@@ -111,7 +112,7 @@ def matrix(disp: Display, text_negative, interval=0.05):
             density = 1
         else:
             if random.random() < 0.02:
-                density = random.uniform(0.02, 0.15)
+                density = random.uniform(0.01, 0.1)
 
         image = np.roll(image, 1, axis=0)
         image[0, :] = False
@@ -130,18 +131,23 @@ def text(disp: Display):
     ulti = np.load("ultimate.npy")
     illinois = np.load("I.npy")
     ulti_border = generate_border(ulti)
+    matrix_mask = np.logical_and(np.logical_or(ulti, illinois), np.logical_not(np.logical_and(ulti_border, illinois)))
 
     while disp.run:
-        matrix_mask = np.logical_and(np.logical_or(ulti, illinois), np.logical_not(np.logical_and(ulti_border, illinois)))
-        matrix(disp, matrix_mask)
-        time.sleep(2)
-        erase(disp)
-        time.sleep(2)
-        continue
+        if random.random() < 0.5:
+            mask = random.choice([matrix_mask, ulti, illinois, ulti_border, np.zeros_like(matrix_mask, dtype=bool)])
+            matrix(disp, mask)
+            time.sleep(2)
+            erase(disp)
+        else:
+            text = random.choice([ulti_border, ulti, illinois, np.logical_xor(ulti, illinois), matrix_mask])
+            floodfill(disp, text, bfs=random.random() < 0.5)
+            time.sleep(2)
+            if random.random() < 0.5:
+                floodfill(disp, text, disappear=True, bfs=random.random() < 0.5)
+            else:
+                erase(disp)
 
-        floodfill(disp, ulti_border, disappear=False)
-        time.sleep(2)
-        floodfill(disp, ulti_border, disappear=True)
         time.sleep(2)
 
 

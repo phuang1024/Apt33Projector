@@ -3,6 +3,7 @@ Implementation of pygame and display math.
 """
 
 import json
+import os
 import time
 from threading import Thread
 
@@ -62,7 +63,10 @@ class Display:
         self.window = pygame.display.set_mode((1280, 720), pygame.FULLSCREEN)
         self.params = DrawParams()
         if load_params:
-            self.params.load("disp.json")
+            if os.path.isfile("disp.json"):
+                self.params.load("disp.json")
+            else:
+                print("Warning: disp.json not found")
 
         self.daemons = []
         # Append to this externally. Each func is called with (self, event.key)

@@ -8,6 +8,7 @@ Hold shift to move slower, and ctrl to move faster.
 Use RF to increase and decrease radius, respectively.
 """
 
+import argparse
 import time
 
 import numpy as np
@@ -59,6 +60,7 @@ def keypress_daemon(disp: Display):
         shift = keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]
         ctrl = keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]
 
+        # Drag
         attr = ["tl", "tr", "br", "bl"][selection]
         value = getattr(disp.params, attr)
         delta = np.array([0, 0], dtype=float)
@@ -77,11 +79,27 @@ def keypress_daemon(disp: Display):
         value = value + delta
         setattr(disp.params, attr, (value[0], value[1]))
 
+        # Radius
+        delta = 0
+        if keys[pygame.K_r]:
+            delta += 0.1
+        if keys[pygame.K_f]:
+            delta += -0.1
+        if shift:
+            delta *= 0.1
+        if ctrl:
+            delta *= 10
+        disp.params.radius += delta
+
         time.sleep(0.05)
 
 
 def main():
-    disp = Display()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--reset", action="store_true")
+    args = parser.parse_args()
+
+    disp = Display(load_params=not args.reset)
 
     disp.add_daemon(draw_daemon, (disp,))
     disp.add_daemon(keypress_daemon, (disp,))
