@@ -54,8 +54,6 @@ def key_handler(disp: Display, key):
 def main():
     disp = Display()
 
-    disp.params.load("disp.json")
-
     disp.board = np.ones_like(disp.board, dtype=bool)
     #disp.add_daemon(random_bw, (disp,))
     disp.keydown_hooks.append(key_handler)

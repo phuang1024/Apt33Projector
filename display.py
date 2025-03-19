@@ -51,16 +51,24 @@ class DrawParams:
 
 
 class Display:
-    def __init__(self):
+    def __init__(self, load_params=True):
         self.board = np.zeros((27, 81), dtype=bool)
         self.run = True
 
         self.window = pygame.display.set_mode((1280, 720), pygame.FULLSCREEN)
         self.params = DrawParams()
+        if load_params:
+            self.params.load("disp.json")
 
         self.daemons = []
         # Append to this externally. Each func is called with (self, event.key)
         self.keydown_hooks = []
+
+    def save_board(self, path):
+        np.save(path, self.board)
+
+    def load_board(self, path):
+        self.board = np.load(path)
 
     def start(self):
         """
