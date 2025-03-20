@@ -2,7 +2,7 @@
 Live adjust display parameters. Live save to file.
 
 Keybinds:
-Use QWSA to select the four corners.
+Use ASXZ to select the four corners.
 Use arrow keys to drag the selected corner.
 Hold shift to move slower, and ctrl to move faster.
 Use RF to increase and decrease radius, respectively.
@@ -22,13 +22,13 @@ selection = 0
 def key_handler(disp: Display, key):
     global selection
 
-    if key == pygame.K_q:
+    if key == pygame.K_a:
         selection = 0
-    elif key == pygame.K_w:
-        selection = 1
     elif key == pygame.K_s:
+        selection = 1
+    elif key == pygame.K_x:
         selection = 2
-    elif key == pygame.K_a:
+    elif key == pygame.K_z:
         selection = 3
 
     disp.params.save("disp.json")

@@ -136,7 +136,7 @@ class Display:
         ], dtype=np.float32)
         to_pts = np.array([params.tl, params.tr, params.br, params.bl], dtype=np.float32)
         trans = cv2.getPerspectiveTransform(from_pts, to_pts)
-        img = cv2.warpPerspective(raw_img, trans, (width, height))
+        img = cv2.warpPerspective(raw_img, trans, (height, width))
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         #img = img.swapaxes(0, 1)
