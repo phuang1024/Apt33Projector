@@ -36,8 +36,8 @@ class DrawParams:
     def __init__(self):
         self.radius = 3
         self.tl = (100, 100)
-        self.tr = (100, 500)
-        self.br = (300, 500)
+        self.tr = (100, 715)
+        self.br = (300, 715)
         self.bl = (300, 100)
 
     def save(self, path):
