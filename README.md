@@ -36,3 +36,25 @@ Hold Shift to move slowly, and Ctrl to move quickly.
 This automatically saves `disp.json` live, which is read by all other programs.
 
 Next, run any program you want.
+
+## Files
+
+**System**
+
+- display.py: Display drawing and logic.
+- adjust_disp.py: Live adjust projection.
+- random_bw.py: Random display for testing.
+- make_mask.py: Manually make binary image.
+
+**Programs**
+
+- game_of_life.py: Conway's Game of Life.
+- image.py: Image or video.
+- screensaver.py: Matrix and floodfill I/Ultimate.
+- snake.py: Snake game.
+- text.py: Scrolling text.
+
+**Datafiles**
+
+- disp.json: Projection data, automatically written.
+- ultimate.npy, I.npy: Pre-made images.
