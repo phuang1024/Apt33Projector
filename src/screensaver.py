@@ -53,7 +53,7 @@ def erase(disp: Display, fill=False):
     else:
         num_streaks = random.randint(1, 5)
         angle_thres = 0
-        while disp.board.any():
+        while True:
             for x in range(disp.board.shape[1]):
                 for y in range(disp.board.shape[0]):
                     angle = math.atan2(y - disp.board.shape[0] // 2, x - disp.board.shape[1] // 2)
@@ -62,6 +62,11 @@ def erase(disp: Display, fill=False):
                         disp.board[y, x] = fill
             angle_thres += 0.05
             time.sleep(0.05)
+
+            if fill and disp.board.all():
+                break
+            if not fill and not disp.board.any():
+                break
 
 
 def falling_columns(disp: Display, text, interval=0.02, disappear=False):
