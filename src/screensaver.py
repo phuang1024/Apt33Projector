@@ -135,11 +135,23 @@ def matrix(disp: Display, text_negative, interval=0.05):
 def text(disp: Display):
     ulti = np.load("ultimate.npy")
     illinois = np.load("I.npy")
+    toast = np.load("toast.npy")
+    boom = np.load("boom.npy")
     ulti_border = generate_border(ulti)
     ulti_and_i = np.logical_and(np.logical_or(ulti, illinois), np.logical_not(np.logical_and(ulti_border, illinois)))
 
-    matrix_masks = [ulti, illinois, ulti_and_i, ulti_border, np.zeros_like(ulti, dtype=bool)]
-    text_masks = [ulti, illinois, ulti_and_i, ulti_border, np.logical_xor(ulti, illinois)]
+    matrix_masks = [
+        ulti, illinois, ulti_and_i, ulti_border,
+        toast, boom,
+        np.zeros_like(ulti, dtype=bool)
+    ]
+    text_masks = [
+        ulti, illinois, ulti_and_i, ulti_border,
+        toast, boom,
+        np.logical_xor(ulti, illinois)
+    ]
+    matrix_masks = [boom]
+    text_masks = matrix_masks
 
     while disp.run:
         if random.random() < 0.5:
