@@ -136,16 +136,19 @@ def text(disp: Display):
     ulti = np.load("ultimate.npy")
     illinois = np.load("I.npy")
     ulti_border = generate_border(ulti)
-    matrix_mask = np.logical_and(np.logical_or(ulti, illinois), np.logical_not(np.logical_and(ulti_border, illinois)))
+    ulti_and_i = np.logical_and(np.logical_or(ulti, illinois), np.logical_not(np.logical_and(ulti_border, illinois)))
+
+    matrix_masks = [ulti, illinois, ulti_and_i, ulti_border, np.zeros_like(ulti, dtype=bool)]
+    text_masks = [ulti, illinois, ulti_and_i, ulti_border, np.logical_xor(ulti, illinois)]
 
     while disp.run:
         if random.random() < 0.5:
-            mask = random.choice([matrix_mask, ulti, illinois, ulti_border, np.zeros_like(matrix_mask, dtype=bool)])
+            mask = random.choice(matrix_masks)
             matrix(disp, mask)
             time.sleep(2)
             erase(disp)
         else:
-            text = random.choice([ulti_border, ulti, illinois, np.logical_xor(ulti, illinois), matrix_mask])
+            text = random.choice(text_masks)
             floodfill(disp, text, bfs=random.random() < 0.5)
             time.sleep(2)
             if random.random() < 0.5:
