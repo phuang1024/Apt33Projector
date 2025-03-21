@@ -150,8 +150,6 @@ def text(disp: Display):
         toast, boom,
         np.logical_xor(ulti, illinois)
     ]
-    matrix_masks = [boom]
-    text_masks = matrix_masks
 
     while disp.run:
         if random.random() < 0.5:

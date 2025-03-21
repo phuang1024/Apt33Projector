@@ -3,6 +3,7 @@ Display text on the board.
 """
 
 import argparse
+import random
 import time
 
 import cv2
@@ -39,6 +40,7 @@ def draw_daemon(disp: Display, args):
     if args.file is not None:
         with open(args.file, "r") as f:
             lines = f.readlines()
+        random.shuffle(lines)
         while disp.run:
             for line in lines:
                 draw_text(disp, args.font, line.strip())
