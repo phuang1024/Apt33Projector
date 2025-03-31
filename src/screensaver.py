@@ -35,6 +35,8 @@ def erase(disp: Display, fill=False):
             for y in range(disp.board.shape[0]):
                 disp.board[y, x] = fill
                 time.sleep(0.002)
+                if not disp.run:
+                    return
 
     elif choice < 0.5:
         # Random erase
@@ -42,6 +44,8 @@ def erase(disp: Display, fill=False):
         for x, y in coords:
             disp.board[y, x] = fill
             time.sleep(0.002)
+            if not disp.run:
+                return
 
     elif choice < 0.75:
         # Radial erase
@@ -49,6 +53,8 @@ def erase(disp: Display, fill=False):
         for x, y in coords:
             disp.board[y, x] = fill
             time.sleep(0.002)
+            if not disp.run:
+                return
 
     else:
         num_streaks = random.randint(1, 5)
@@ -62,6 +68,8 @@ def erase(disp: Display, fill=False):
                         disp.board[y, x] = fill
             angle_thres += 0.05
             time.sleep(0.05)
+            if not disp.run:
+                return
 
             if fill and disp.board.all():
                 break
@@ -81,6 +89,8 @@ def falling_columns(disp: Display, text, interval=0.02, disappear=False):
                         disp.board[y, x] = text[y_text, x]
                     else:
                         break
+                if not disp.run:
+                    return
                 time.sleep(interval)
 
 
@@ -104,6 +114,8 @@ def floodfill(disp: Display, text, interval=0.03, disappear=False, bfs=False):
             else:
                 continue
             time.sleep(interval)
+            if not disp.run:
+                return
 
 
 def matrix(disp: Display, text_negative, interval=0.05):
@@ -130,6 +142,8 @@ def matrix(disp: Display, text_negative, interval=0.05):
 
         disp.board = np.logical_and(image, np.logical_not(text_negative))
         time.sleep(interval)
+        if not disp.run:
+            return
 
 
 def text(disp: Display):

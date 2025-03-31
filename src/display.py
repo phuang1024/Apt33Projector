@@ -15,6 +15,12 @@ pygame.init()
 
 # Automatically set run = False after time limit.
 TIME_LIMIT = None
+if os.path.isfile("time_limit.txt"):
+    with open("time_limit.txt", "r") as f:
+        try:
+            TIME_LIMIT = float(f.read())
+        except ValueError:
+            print("Warning: time_limit.txt is not a valid float")
 
 
 class DrawParams:
@@ -87,7 +93,7 @@ class Display:
         Blocking (pygame needs main thread).
         """
         while self.run:
-            time.sleep(1 / 60)
+            time.sleep(1 / 160)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.run = False
@@ -101,6 +107,7 @@ class Display:
             pygame.display.flip()
 
             if TIME_LIMIT is not None and time.time() - self.time_start > TIME_LIMIT:
+                print("Time limit reached")
                 self.run = False
 
         pygame.quit()
