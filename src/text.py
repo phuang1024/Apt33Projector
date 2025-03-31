@@ -23,7 +23,10 @@ def draw_text(disp: Display, font, text):
     text.fill((0, 0, 0))
     text.blit(text_transparent, (0, 0))
     text = pygame.surfarray.array3d(text).mean(axis=2).astype(np.uint8).swapaxes(0, 1)
-    text = cv2.resize(text, (int(text.shape[1] / text.shape[0] * 27 * 0.7), 27))
+
+    text = cv2.resize(text, (int(text.shape[1] / text.shape[0] * 23 * 0.7), 23))
+    padding = np.zeros((2, text.shape[1]), dtype=bool)
+    text = np.concatenate((padding, text, padding), axis=0)
     text = text > 128
 
     # Pad zeros horizontally on both sides
@@ -34,6 +37,8 @@ def draw_text(disp: Display, font, text):
     for i in range(text.shape[1] - disp.board.shape[1]):
         disp.board[:] = text[:, i : i + disp.board.shape[1]]
         time.sleep(0.03)
+        if not disp.run:
+            break
 
 
 def draw_daemon(disp: Display, args):
@@ -54,7 +59,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--text", type=str, help="Manually set single text.")
     parser.add_argument("--file", type=str, help="Display sequentially from file.")
-    parser.add_argument("--font", type=str, default="helvetica")
+    parser.add_argument("--font", type=str, default="arial")
     args = parser.parse_args()
 
     disp = Display()

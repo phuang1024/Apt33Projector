@@ -13,6 +13,9 @@ import pygame
 
 pygame.init()
 
+# Automatically set run = False after time limit.
+TIME_LIMIT = None
+
 
 class DrawParams:
     """
@@ -59,6 +62,7 @@ class Display:
     def __init__(self, load_params=True):
         self.board = np.zeros((27, 81), dtype=bool)
         self.run = True
+        self.time_start = time.time()
 
         self.window = pygame.display.set_mode((1280, 720), pygame.FULLSCREEN)
         self.params = DrawParams()
@@ -83,7 +87,7 @@ class Display:
         Blocking (pygame needs main thread).
         """
         while self.run:
-            time.sleep(1 / 140)
+            time.sleep(1 / 60)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.run = False
@@ -95,6 +99,9 @@ class Display:
 
             self.draw_board()
             pygame.display.flip()
+
+            if TIME_LIMIT is not None and time.time() - self.time_start > TIME_LIMIT:
+                self.run = False
 
         pygame.quit()
         for daemon in self.daemons:
