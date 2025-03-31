@@ -4,6 +4,7 @@ Display spectrogram of audio.
 
 import argparse
 import math
+import subprocess
 import time
 import wave
 
@@ -12,7 +13,7 @@ import numpy as np
 from display import Display
 
 
-def display_spectrogram(disp: Display, audio: np.ndarray, sample_rate: float, min_freq=20, max_freq=4000):
+def display_spectrogram(disp: Display, audio: np.ndarray, sample_rate: float, min_freq=100, max_freq=1000):
     """
     Display spectrogram of a single audio sample.
     """
@@ -22,11 +23,10 @@ def display_spectrogram(disp: Display, audio: np.ndarray, sample_rate: float, mi
         freq = min_freq * (freq_step ** i)
         x = np.linspace(0, len(audio) / sample_rate, len(audio)) * 2 * np.pi * freq
         amp = math.hypot(np.mean(audio * np.sin(x)), np.mean(audio * np.cos(x)))
-        amp = math.log(amp + 1)
+        #amp = math.log(amp + 1)
         dft.append(amp)
 
-    dft = np.array(dft)
-    dft = np.interp(dft, (dft.min(), dft.max()), (0, 27))
+    dft = np.array(dft) / 1e-3
     dft = np.clip(dft, 0, 27)
     dft = dft.astype(int)
 
@@ -36,7 +36,7 @@ def display_spectrogram(disp: Display, audio: np.ndarray, sample_rate: float, mi
             disp.board[-dft[i]:, i] = True
 
 
-def display_audio(disp: Display, audio: np.ndarray, sample_rate: float, fps=30, repeat=False):
+def display_audio(disp: Display, audio: np.ndarray, sample_rate: float, fps=15, repeat=False):
     """
     Automatically chunk audio and display spectrogram of each chunk sequentially.
     """
@@ -58,7 +58,14 @@ def main():
     parser.add_argument("file", type=str)
     args = parser.parse_args()
 
-    with wave.open(args.file, "rb") as wf:
+    subprocess.run([
+        "ffmpeg", "-y",
+        "-i", args.file,
+        "-c:a", "pcm_s16le",
+        "/tmp/apt33_audio.wav"
+    ], check=True)
+
+    with wave.open("/tmp/apt33_audio.wav", "rb") as wf:
         sample_rate = wf.getframerate()
         n_frames = wf.getnframes()
         audio = wf.readframes(n_frames)
@@ -66,7 +73,7 @@ def main():
         audio = audio / 32768.0
 
     disp = Display()
-    disp.add_daemon(display_audio, (disp, audio, sample_rate, 30, True))
+    disp.add_daemon(display_audio, (disp, audio, sample_rate, 15, True))
     disp.start()
 
 
