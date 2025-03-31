@@ -34,12 +34,12 @@ def game_step(board):
 def game_daemon(disp: Display):
     iters = 1e9
     while disp.run:
-        if iters > 100:
+        if iters > 150:
             iters = 0
             disp.board[:] = np.random.randint(0, 2, size=(disp.board.shape[0], disp.board.shape[1])) == 0
         game_step(disp.board)
         iters += 1
-        time.sleep(0.2)
+        time.sleep(0.1)
 
 
 def main():
