@@ -99,6 +99,7 @@ def snake_daemon(disp: Display, auto: bool):
             disp.board[snake[-1][1], snake[-1][0]] = True
         else:
             game_running = False
+            period = 0.1
 
             time.sleep(1)
             erase(disp, fill=True)
