@@ -29,13 +29,16 @@ def render_text(text, font=None):
     else:
         font = pygame.font.SysFont(font, 24)
 
-    text_transparent = font.render(text, True, (255, 255, 255))
-    text = pygame.Surface(text_transparent.get_size())
-    text.fill((0, 0, 0))
-    text.blit(text_transparent, (0, 0))
-    text = pygame.surfarray.array3d(text).mean(axis=2).astype(np.uint8).swapaxes(0, 1)
+    if len(text) == 0:
+        text = np.zeros((23, 1), dtype=bool)
+    else:
+        text_transparent = font.render(text, True, (255, 255, 255))
+        text = pygame.Surface(text_transparent.get_size())
+        text.fill((0, 0, 0))
+        text.blit(text_transparent, (0, 0))
+        text = pygame.surfarray.array3d(text).mean(axis=2).astype(np.uint8).swapaxes(0, 1)
+        text = cv2.resize(text, (int(text.shape[1] / text.shape[0] * 23 * 0.7), 23))
 
-    text = cv2.resize(text, (int(text.shape[1] / text.shape[0] * 23 * 0.7), 23))
     padding = np.zeros((2, text.shape[1]), dtype=bool)
     text = np.concatenate((padding, text, padding), axis=0)
     text = text > 128
@@ -56,7 +59,7 @@ def draw_scrolling_text(disp: Display, text, font=None):
     # Scrolling display
     for i in range(0, text.shape[1] - disp.board.shape[1], 2):
         disp.board[:] = text[:, i : i + disp.board.shape[1]]
-        time.sleep(0.05)
+        time.sleep(0.07)
         if not disp.run:
             break
 
