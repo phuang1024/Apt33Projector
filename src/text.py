@@ -13,11 +13,17 @@ import pygame
 
 from display import Display
 
+DEFAULT_FONT = "./Aldrich-Regular.ttf"
 
-def draw_text(disp: Display, font, text):
+
+def render_text(text, font=None):
     """
-    Draw text that scrolls across screen.
+    Render text as boolean array.
+    Vertical size equal to disp.board vertical size.
+    Horziontal size variable.
     """
+    if font is None:
+        font = DEFAULT_FONT
     if os.path.isfile(font):
         font = pygame.font.Font(font, 24)
     else:
@@ -33,6 +39,15 @@ def draw_text(disp: Display, font, text):
     padding = np.zeros((2, text.shape[1]), dtype=bool)
     text = np.concatenate((padding, text, padding), axis=0)
     text = text > 128
+
+    return text
+
+
+def draw_scrolling_text(disp: Display, text, font=None):
+    """
+    Draw text that scrolls across screen.
+    """
+    text = render_text(text, font=font)
 
     # Pad zeros horizontally on both sides
     zeros = np.zeros((27, 85), dtype=bool)
@@ -54,13 +69,13 @@ def draw_daemon(disp: Display, args):
             random.shuffle(lines)
         while disp.run:
             for line in lines:
-                draw_text(disp, args.font, line.strip())
+                draw_scrolling_text(disp, line.strip(), args.font)
             if not args.repeat:
                 break
 
     elif args.text is not None:
         while disp.run:
-            draw_text(disp, args.font, args.text)
+            draw_scrolling_text(disp, args.text, args.font)
             if not args.repeat:
                 break
 
@@ -71,7 +86,7 @@ def main():
     parser.add_argument("--file", type=str, help="Display from file.")
     parser.add_argument("--shuffle", action="store_true", help="Whether to shuffle contents of file.")
     parser.add_argument("--repeat", action="store_true")
-    parser.add_argument("--font", type=str, default="./Aldrich-Regular.ttf", help="Can be system or file.")
+    parser.add_argument("--font", type=str)
     parser.add_argument("--limit", type=float)
     args = parser.parse_args()
 

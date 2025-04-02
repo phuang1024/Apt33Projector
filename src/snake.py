@@ -11,7 +11,7 @@ import pygame
 
 from display import Display
 from screensaver import erase
-from text import draw_text
+from text import draw_scrolling_text
 
 game_running = True
 # 0 up, 1 right, 2 down, 3 left
@@ -109,7 +109,7 @@ def snake_daemon(disp: Display, auto: bool):
             erase(disp, fill=True)
             time.sleep(1)
             disp.board[:] = False
-            draw_text(disp, "./Aldrich-Regular.ttf", f"YOUR SCORE: {len(snake)}")
+            draw_scrolling_text(disp, f"YOUR SCORE: {len(snake)}")
 
             snake = DEFAULT_SNAKE.copy()
             snake_dir = 1
