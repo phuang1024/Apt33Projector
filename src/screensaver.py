@@ -2,6 +2,7 @@
 Cool repeating text animations of Ultimate and I.
 """
 
+import argparse
 import math
 import random
 import time
@@ -184,7 +185,11 @@ def text(disp: Display):
 
 
 def main():
-    disp = Display()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--limit", type=float)
+    args = parser.parse_args()
+
+    disp = Display(time_limit=args.limit)
     disp.add_daemon(text, (disp,))
     disp.start()
 

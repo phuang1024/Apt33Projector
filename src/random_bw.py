@@ -2,6 +2,7 @@
 Testing script: Random black and white pixels
 """
 
+import argparse
 import time
 
 import numpy as np
@@ -16,7 +17,11 @@ def random_bw(disp: Display):
 
 
 def main():
-    disp = Display()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--limit", type=float)
+    args = parser.parse_args()
+
+    disp = Display(time_limit=args.limit)
     disp.add_daemon(random_bw, (disp,))
     disp.start()
 

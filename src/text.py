@@ -3,6 +3,7 @@ Display text on the board.
 """
 
 import argparse
+import os
 import random
 import time
 
@@ -17,7 +18,11 @@ def draw_text(disp: Display, font, text):
     """
     Draw text that scrolls across screen.
     """
-    font = pygame.font.SysFont(font, 24)
+    if os.path.isfile(font):
+        font = pygame.font.Font(font, 24)
+    else:
+        font = pygame.font.SysFont(font, 24)
+
     text_transparent = font.render(text, True, (255, 255, 255))
     text = pygame.Surface(text_transparent.get_size())
     text.fill((0, 0, 0))
@@ -34,9 +39,9 @@ def draw_text(disp: Display, font, text):
     text = np.concatenate((zeros, text, zeros), axis=1)
 
     # Scrolling display
-    for i in range(text.shape[1] - disp.board.shape[1]):
+    for i in range(0, text.shape[1] - disp.board.shape[1], 2):
         disp.board[:] = text[:, i : i + disp.board.shape[1]]
-        time.sleep(0.03)
+        time.sleep(0.05)
         if not disp.run:
             break
 
@@ -60,9 +65,10 @@ def main():
     parser.add_argument("--text", type=str, help="Manually set single text.")
     parser.add_argument("--file", type=str, help="Display sequentially from file.")
     parser.add_argument("--font", type=str, default="arial")
+    parser.add_argument("--limit", type=float)
     args = parser.parse_args()
 
-    disp = Display()
+    disp = Display(time_limit=args.limit)
     disp.add_daemon(draw_daemon, (disp, args))
     disp.start()
 

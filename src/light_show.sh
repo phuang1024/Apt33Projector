@@ -1,13 +1,8 @@
 while [ true ]
 do
-    echo 150 > time_limit.txt
-    python screensaver.py
-    echo 10 > time_limit.txt
-    python image.py fluid.mp4
-    echo 150 > time_limit.txt
-    python text.py --file next_stops.txt
-    echo 30 > time_limit.txt
-    python game_of_life.py
-    echo 180 > time_limit.txt
-    python snake.py --auto
+    python screensaver.py --limit 180
+    python image.py fluid.mp4 --limit 10
+    python text.py --file next_stops.txt --limit 180
+    python game_of_life.py --limit 30
+    python snake.py --auto --limit 180
 done

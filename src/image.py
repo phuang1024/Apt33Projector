@@ -55,9 +55,10 @@ def disp_daemon(disp: Display, args):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("file", type=str)
+    parser.add_argument("--limit", type=float)
     args = parser.parse_args()
 
-    disp = Display()
+    disp = Display(time_limit=args.limit)
     disp.add_daemon(disp_daemon, (disp, args))
     disp.start()
 

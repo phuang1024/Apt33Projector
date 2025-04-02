@@ -2,6 +2,7 @@
 Testing script: Random black and white pixels
 """
 
+import argparse
 import time
 
 import numpy as np
@@ -43,7 +44,11 @@ def game_daemon(disp: Display):
 
 
 def main():
-    disp = Display()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--limit", type=float)
+    args = parser.parse_args()
+
+    disp = Display(time_limit=args.limit)
     disp.add_daemon(game_daemon, (disp,))
     disp.start()
 
