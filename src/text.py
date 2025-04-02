@@ -50,21 +50,28 @@ def draw_daemon(disp: Display, args):
     if args.file is not None:
         with open(args.file, "r") as f:
             lines = f.readlines()
-        random.shuffle(lines)
+        if args.shuffle:
+            random.shuffle(lines)
         while disp.run:
             for line in lines:
                 draw_text(disp, args.font, line.strip())
+            if not args.repeat:
+                break
 
     elif args.text is not None:
         while disp.run:
             draw_text(disp, args.font, args.text)
+            if not args.repeat:
+                break
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--text", type=str, help="Manually set single text.")
-    parser.add_argument("--file", type=str, help="Display sequentially from file.")
-    parser.add_argument("--font", type=str, default="arial")
+    parser.add_argument("--file", type=str, help="Display from file.")
+    parser.add_argument("--shuffle", action="store_true", help="Whether to shuffle contents of file.")
+    parser.add_argument("--repeat", action="store_true")
+    parser.add_argument("--font", type=str, default="./Aldrich-Regular.ttf", help="Can be system or file.")
     parser.add_argument("--limit", type=float)
     args = parser.parse_args()
 

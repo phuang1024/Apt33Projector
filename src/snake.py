@@ -23,6 +23,10 @@ keypress_iter = 0
 DEFAULT_SNAKE = np.array([[5, 5], [6, 5], [7, 5]])
 
 
+def snake_contains(snake, pos):
+    return any((snake == pos).all(axis=1))
+
+
 def set_snake_dir(dir: int):
     """
     Makes sure dir does not reverse.
@@ -105,36 +109,45 @@ def snake_daemon(disp: Display, auto: bool):
             erase(disp, fill=True)
             time.sleep(1)
             disp.board[:] = False
-            draw_text(disp, "helvetica", f"YOUR SCORE: {len(snake)}")
+            draw_text(disp, "./Aldrich-Regular.ttf", f"YOUR SCORE: {len(snake)}")
 
             snake = DEFAULT_SNAKE.copy()
             snake_dir = 1
             game_running = True
 
         if auto:
+            new_dir = None
+
             if food_loc is not None:
                 if auto_priority == 0:
                     if snake[-1][0] == food_loc[0]:
-                        set_snake_dir(2 if snake[-1][1] < food_loc[1] else 0)
+                        new_dir = 2 if snake[-1][1] < food_loc[1] else 0
                     else:
-                        set_snake_dir(1 if snake[-1][0] < food_loc[0] else 3)
+                        new_dir = 1 if snake[-1][0] < food_loc[0] else 3
                 else:
                     if snake[-1][1] == food_loc[1]:
-                        set_snake_dir(1 if snake[-1][0] < food_loc[0] else 3)
+                        new_dir = 1 if snake[-1][0] < food_loc[0] else 3
                     else:
-                        set_snake_dir(2 if snake[-1][1] < food_loc[1] else 0)
+                        new_dir = 2 if snake[-1][1] < food_loc[1] else 0
 
-            if snake[-1][0] <= 2 and snake_dir == 3:
-                set_snake_dir(random.choice([0, 2]))
-            if snake[-1][1] <= 2 and snake_dir == 0:
-                set_snake_dir(random.choice([1, 3]))
-            if snake[-1][0] >= disp.board.shape[1] - 3 and snake_dir == 1:
-                set_snake_dir(random.choice([0, 2]))
-            if snake[-1][1] >= disp.board.shape[0] - 3 and snake_dir == 2:
-                set_snake_dir(random.choice([1, 3]))
+            if snake_dir == 0:
+                if snake[-1][1] <= 2 or snake_contains(snake, (snake[-1][0], snake[-1][1] - 1)):
+                    new_dir = random.choice([1, 3])
+            elif snake_dir == 1:
+                if snake[-1][0] >= disp.board.shape[1] - 3 or snake_contains(snake, (snake[-1][0] + 1, snake[-1][1])):
+                    new_dir = random.choice([0, 2])
+            elif snake_dir == 2:
+                if snake[-1][1] >= disp.board.shape[0] - 3 or snake_contains(snake, (snake[-1][0], snake[-1][1] + 1)):
+                    new_dir = random.choice([1, 3])
+            elif snake_dir == 3:
+                if snake[-1][0] <= 2 or snake_contains(snake, (snake[-1][0] - 1, snake[-1][1])):
+                    new_dir = random.choice([0, 2])
 
             if random.random() < 0.1:
                 auto_priority = random.randint(0, 1)
+
+            if new_dir is not None:
+                set_snake_dir(new_dir)
 
         global_iter += 1
         time.sleep(period)
