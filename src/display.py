@@ -2,6 +2,7 @@
 Implementation of pygame and display math.
 """
 
+import argparse
 import json
 import os
 import time
@@ -56,9 +57,10 @@ class DrawParams:
 
 
 class Display:
-    def __init__(self, load_params=True, time_limit=None):
-        self.time_limit = time_limit
-        self.time_start = time.time()
+    def __init__(self, load_params=True):
+        self.parser = argparse.ArgumentParser()
+        self.parser.add_argument("--limit", type=float)
+
         self.board = np.zeros((27, 81), dtype=bool)
         self.run = True
 
@@ -84,6 +86,10 @@ class Display:
         """
         Blocking (pygame needs main thread).
         """
+        args = self.parser.parse_args()
+        self.time_limit = args.limit
+        self.time_start = time.time()
+
         while self.run:
             time.sleep(1 / 160)
             for event in pygame.event.get():

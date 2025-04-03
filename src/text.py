@@ -84,16 +84,14 @@ def draw_daemon(disp: Display, args):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--text", type=str, help="Manually set single text.")
-    parser.add_argument("--file", type=str, help="Display from file.")
-    parser.add_argument("--shuffle", action="store_true", help="Whether to shuffle contents of file.")
-    parser.add_argument("--repeat", action="store_true")
-    parser.add_argument("--font", type=str)
-    parser.add_argument("--limit", type=float)
-    args = parser.parse_args()
+    disp = Display()
+    disp.parser.add_argument("--text", type=str, help="Manually set single text.")
+    disp.parser.add_argument("--file", type=str, help="Display from file.")
+    disp.parser.add_argument("--shuffle", action="store_true", help="Whether to shuffle contents of file.")
+    disp.parser.add_argument("--repeat", action="store_true")
+    disp.parser.add_argument("--font", type=str)
+    args = disp.parser.parse_args()
 
-    disp = Display(time_limit=args.limit)
     disp.add_daemon(draw_daemon, (disp, args))
     disp.start()
 

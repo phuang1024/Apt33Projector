@@ -1,5 +1,6 @@
 """
 Testing script: Random black and white pixels
+Also template for other scripts.
 """
 
 import argparse
@@ -17,11 +18,7 @@ def random_bw(disp: Display):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--limit", type=float)
-    args = parser.parse_args()
-
-    disp = Display(time_limit=args.limit)
+    disp = Display()
     disp.add_daemon(random_bw, (disp,))
     disp.start()
 

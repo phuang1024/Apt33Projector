@@ -185,11 +185,7 @@ def text(disp: Display):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--limit", type=float)
-    args = parser.parse_args()
-
-    disp = Display(time_limit=args.limit)
+    disp = Display()
     disp.add_daemon(text, (disp,))
     disp.start()
 

@@ -165,12 +165,10 @@ def food_daemon(disp: Display):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--auto", action="store_true")
-    parser.add_argument("--limit", type=float)
-    args = parser.parse_args()
+    disp = Display()
+    disp.parser.add_argument("--auto", action="store_true")
+    args = disp.parser.parse_args()
 
-    disp = Display(time_limit=args.limit)
     if not args.auto:
         disp.keydown_hooks.append(key_handler)
     disp.add_daemon(snake_daemon, (disp, args.auto))
