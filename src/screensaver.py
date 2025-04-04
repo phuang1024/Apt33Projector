@@ -60,6 +60,11 @@ def erase(disp: Display, fill=False):
             if not disp.run:
                 return
 
+            if fill and disp.board.all():
+                break
+            if not fill and not disp.board.any():
+                break
+
     elif choice < 0.8:
         # Streak erase
         num_streaks = random.randint(1, 5)

@@ -108,7 +108,7 @@ def snake_daemon(disp: Display, auto: bool):
             time.sleep(1)
             erase(disp, fill=True)
             time.sleep(1)
-            disp.board[:] = False
+            erase(disp, fill=False)
             draw_scrolling_text(disp, f"YOUR SCORE: {len(snake)}")
 
             snake = DEFAULT_SNAKE.copy()
@@ -132,16 +132,28 @@ def snake_daemon(disp: Display, auto: bool):
 
             if snake_dir == 0:
                 if snake[-1][1] <= 2 or snake_contains(snake, (snake[-1][0], snake[-1][1] - 1)):
-                    new_dir = random.choice([1, 3])
+                    if food_loc is not None:
+                        new_dir = 1 if food_loc[0] > snake[-1][0] else 3
+                    else:
+                        new_dir = random.choice([1, 3])
             elif snake_dir == 1:
                 if snake[-1][0] >= disp.board.shape[1] - 3 or snake_contains(snake, (snake[-1][0] + 1, snake[-1][1])):
-                    new_dir = random.choice([0, 2])
+                    if food_loc is not None:
+                        new_dir = 2 if food_loc[1] > snake[-1][1] else 0
+                    else:
+                        new_dir = random.choice([0, 2])
             elif snake_dir == 2:
                 if snake[-1][1] >= disp.board.shape[0] - 3 or snake_contains(snake, (snake[-1][0], snake[-1][1] + 1)):
-                    new_dir = random.choice([1, 3])
+                    if food_loc is not None:
+                        new_dir = 1 if food_loc[0] > snake[-1][0] else 3
+                    else:
+                        new_dir = random.choice([1, 3])
             elif snake_dir == 3:
                 if snake[-1][0] <= 2 or snake_contains(snake, (snake[-1][0] - 1, snake[-1][1])):
-                    new_dir = random.choice([0, 2])
+                    if food_loc is not None:
+                        new_dir = 2 if food_loc[1] > snake[-1][1] else 0
+                    else:
+                        new_dir = random.choice([0, 2])
 
             if random.random() < 0.1:
                 auto_priority = random.randint(0, 1)
