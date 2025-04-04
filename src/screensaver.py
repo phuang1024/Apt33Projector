@@ -30,34 +30,35 @@ def erase(disp: Display, fill=False):
     coords = [(x, y) for x in range(disp.board.shape[1]) for y in range(disp.board.shape[0])]
 
     choice = random.random()
-    if choice < 0.25:
+    if choice < 0.2:
         # Sweep erase
         for x in range(disp.board.shape[1]):
             for y in range(disp.board.shape[0]):
                 disp.board[y, x] = fill
-                time.sleep(0.002)
+                time.sleep(1.5e-3)
                 if not disp.run:
                     return
 
-    elif choice < 0.5:
+    elif choice < 0.4:
         # Random erase
         coords.sort(key=lambda x: random.random())
         for x, y in coords:
             disp.board[y, x] = fill
-            time.sleep(0.002)
+            time.sleep(1e-3)
             if not disp.run:
                 return
 
-    elif choice < 0.75:
+    elif choice < 0.6:
         # Radial erase
         coords.sort(key=lambda x: math.hypot(x[0] - disp.board.shape[1] // 2, x[1] - disp.board.shape[0] // 2))
         for x, y in coords:
             disp.board[y, x] = fill
-            time.sleep(0.002)
+            time.sleep(1e-3)
             if not disp.run:
                 return
 
-    else:
+    elif choice < 0.8:
+        # Streak erase
         num_streaks = random.randint(1, 5)
         angle_thres = 0
         while True:
@@ -68,7 +69,31 @@ def erase(disp: Display, fill=False):
                     if angle < angle_thres:
                         disp.board[y, x] = fill
             angle_thres += 0.05
-            time.sleep(0.05)
+            time.sleep(0.06)
+            if not disp.run:
+                return
+
+            if fill and disp.board.all():
+                break
+            if not fill and not disp.board.any():
+                break
+
+    else:
+        # Shatter erase
+        if fill:
+            locs = np.argwhere(np.logical_not(disp.board)).astype(float)
+        else:
+            locs = np.argwhere(disp.board).astype(float)
+        vel = np.random.uniform(-0.5, 0.5, size=(locs.shape[0], 2))
+        vel[:, 0] -= 0.5
+        while True:
+            locs += vel
+            vel[:, 0] += 0.04
+            disp.board[:] = fill
+            for i in range(locs.shape[0]):
+                if 0 <= locs[i, 0] < disp.board.shape[0] and 0 <= locs[i, 1] < disp.board.shape[1]:
+                    disp.board[int(locs[i, 0]), int(locs[i, 1])] = not fill
+            time.sleep(0.03)
             if not disp.run:
                 return
 
@@ -78,7 +103,7 @@ def erase(disp: Display, fill=False):
                 break
 
 
-def falling_columns(disp: Display, text, interval=0.02, disappear=False):
+def falling_columns(disp: Display, text, interval=0.015, disappear=False):
     for x in range(text.shape[1]):
         if text[:, x].any():
             max_y = np.max(np.where(text[:, x]))
@@ -117,6 +142,58 @@ def floodfill(disp: Display, text, interval=0.03, disappear=False, bfs=False):
             time.sleep(interval)
             if not disp.run:
                 return
+
+
+def pixel_slide_in(disp: Display, text, steps=100, interval=0.03, disappear=False):
+    coords = np.argwhere(text)
+    # Generate starting locs (y, x)
+    start = np.empty_like(coords)
+    for i in range(coords.shape[0]):
+        if random.random() < 0.5:
+            start[i] = (random.randint(0, disp.board.shape[0] - 1), -5 if random.random() < 0.5 else disp.board.shape[1] + 5)
+        else:
+            start[i] = (-5 if random.random() < 0.5 else disp.board.shape[0] + 5, random.randint(0, disp.board.shape[1] - 1))
+
+    # Pixel specific duration
+    duration = np.random.randint(int(0.7 * steps), steps, size=coords.shape[0])
+    for i in range(steps):
+        disp.board[:] = False
+        for j in range(coords.shape[0]):
+            if i >= duration[j]:
+                loc = start[j] if disappear else coords[j]
+            else:
+                fac = i / duration[j]
+                if disappear:
+                    fac = 1 - fac
+                loc = (fac * coords[j] + (1 - fac) * start[j]).astype(int)
+            y, x = loc
+            if 0 <= y < disp.board.shape[0] and 0 <= x < disp.board.shape[1]:
+                disp.board[y, x] = True
+
+        time.sleep(interval)
+
+
+def elastic_slide(disp: Display, text, force=1e-2, dampening=0.07, interval=0.03, steps=200):
+    # (y, x)
+    loc = np.array([-text.shape[0], -text.shape[1]], dtype=float)
+    velocity = np.random.uniform(-1, 1, size=2)
+
+    for i in range(steps):
+        if i > steps * 0.8:
+            loc = (0, 0)
+        else:
+            velocity += force * -loc
+            velocity *= (1 - dampening)
+            loc += velocity
+
+        disp.board[:] = False
+        for y, x in np.argwhere(text):
+            loc_y = int(loc[0] + y)
+            loc_x = int(loc[1] + x)
+            if 0 <= loc_y < disp.board.shape[0] and 0 <= loc_x < disp.board.shape[1]:
+                disp.board[loc_y, loc_x] = True
+
+        time.sleep(interval)
 
 
 def matrix(disp: Display, text_negative, interval=0.05):
@@ -167,12 +244,17 @@ def text(disp: Display):
     ]
 
     while disp.run:
-        if random.random() < 0.5:
+        choice = random.random()
+
+        if choice < 0.2:
+            # Matrix
             mask = random.choice(matrix_masks)
             matrix(disp, mask)
             time.sleep(2)
             erase(disp)
-        else:
+
+        elif choice < 0.4:
+            # Floodfill
             text = random.choice(text_masks)
             floodfill(disp, text, bfs=random.random() < 0.5)
             time.sleep(2)
@@ -180,6 +262,33 @@ def text(disp: Display):
                 floodfill(disp, text, disappear=True, bfs=random.random() < 0.5)
             else:
                 erase(disp)
+
+        elif choice < 0.6:
+            # Falling columns
+            text = random.choice(text_masks)
+            falling_columns(disp, text)
+            time.sleep(2)
+            if random.random() < 0.5:
+                falling_columns(disp, text, disappear=True)
+            else:
+                erase(disp)
+
+        elif choice < 0.8:
+            # Pixel slide in
+            text = random.choice(text_masks)
+            pixel_slide_in(disp, text)
+            time.sleep(2)
+            if random.random() < 0.5:
+                pixel_slide_in(disp, text, disappear=True)
+            else:
+                erase(disp)
+
+        else:
+            # Elastic slide in
+            text = random.choice(text_masks)
+            elastic_slide(disp, text)
+            time.sleep(2)
+            erase(disp)
 
         time.sleep(2)
 
