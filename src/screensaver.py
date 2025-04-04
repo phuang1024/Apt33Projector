@@ -27,8 +27,6 @@ def generate_border(text: np.ndarray) -> np.ndarray:
 
 
 def erase(disp: Display, fill=False):
-    coords = [(x, y) for x in range(disp.board.shape[1]) for y in range(disp.board.shape[0])]
-
     choice = random.random()
     if choice < 0.2:
         # Sweep erase
@@ -41,7 +39,8 @@ def erase(disp: Display, fill=False):
 
     elif choice < 0.4:
         # Random erase
-        coords.sort(key=lambda x: random.random())
+        coords = [(x, y) for x in range(disp.board.shape[1]) for y in range(disp.board.shape[0])]
+        random.shuffle(coords)
         for x, y in coords:
             disp.board[y, x] = fill
             time.sleep(1e-3)
@@ -50,10 +49,14 @@ def erase(disp: Display, fill=False):
 
     elif choice < 0.6:
         # Radial erase
-        coords.sort(key=lambda x: math.hypot(x[0] - disp.board.shape[1] // 2, x[1] - disp.board.shape[0] // 2))
-        for x, y in coords:
-            disp.board[y, x] = fill
-            time.sleep(1e-3)
+        radius = 0
+        while True:
+            for x in range(disp.board.shape[1]):
+                for y in range(disp.board.shape[0]):
+                    if math.hypot(x - disp.board.shape[1] // 2, y - disp.board.shape[0] // 2) < radius:
+                        disp.board[y, x] = fill
+            radius += 1
+            time.sleep(0.06)
             if not disp.run:
                 return
 
@@ -230,21 +233,20 @@ def text(disp: Display):
     illinois = np.load("I.npy")
     toast = np.load("toast.npy")
     boom = np.load("boom.npy")
-    arnie = np.load("arnie.npy")
-    abbey = np.load("abbey.npy")
+    arrniey = np.load("arrniey.npy")
     ulti_border = generate_border(ulti)
     ulti_and_i = np.logical_and(np.logical_or(ulti, illinois), np.logical_not(np.logical_and(ulti_border, illinois)))
 
     matrix_masks = [
-        ulti, illinois, ulti_and_i, ulti_border,
+        ulti, illinois, ulti_and_i,
         toast, boom,
-        arnie, abbey,
+        arrniey,
         np.zeros_like(ulti, dtype=bool)
     ]
     text_masks = [
         ulti, illinois, ulti_and_i, ulti_border,
         toast, boom,
-        arnie, abbey,
+        arrniey,
         np.logical_xor(ulti, illinois)
     ]
 
@@ -263,7 +265,7 @@ def text(disp: Display):
             text = random.choice(text_masks)
             floodfill(disp, text, bfs=random.random() < 0.5)
             time.sleep(2)
-            if random.random() < 0.5:
+            if random.random() < 0.3:
                 floodfill(disp, text, disappear=True, bfs=random.random() < 0.5)
             else:
                 erase(disp)
@@ -273,7 +275,7 @@ def text(disp: Display):
             text = random.choice(text_masks)
             falling_columns(disp, text)
             time.sleep(2)
-            if random.random() < 0.5:
+            if random.random() < 0.3:
                 falling_columns(disp, text, disappear=True)
             else:
                 erase(disp)
@@ -283,7 +285,7 @@ def text(disp: Display):
             text = random.choice(text_masks)
             pixel_slide_in(disp, text)
             time.sleep(2)
-            if random.random() < 0.5:
+            if random.random() < 0.3:
                 pixel_slide_in(disp, text, disappear=True)
             else:
                 erase(disp)
