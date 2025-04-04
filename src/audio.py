@@ -54,9 +54,9 @@ def display_audio(disp: Display, audio: np.ndarray, sample_rate: float, fps=15, 
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("file", type=str)
-    args = parser.parse_args()
+    disp = Display()
+    disp.parser.add_argument("file", type=str)
+    args = disp.parser.parse_args()
 
     subprocess.run([
         "ffmpeg", "-y",
@@ -72,7 +72,6 @@ def main():
         audio = np.frombuffer(audio, dtype=np.int16)
         audio = audio / 32768.0
 
-    disp = Display()
     disp.add_daemon(display_audio, (disp, audio, sample_rate, 15, True))
     disp.start()
 

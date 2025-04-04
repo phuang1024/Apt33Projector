@@ -41,7 +41,7 @@ def render_text(text, font=None):
 
     padding = np.zeros((2, text.shape[1]), dtype=bool)
     text = np.concatenate((padding, text, padding), axis=0)
-    text = text > 100
+    text = text > 80
 
     return text
 

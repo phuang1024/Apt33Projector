@@ -258,14 +258,14 @@ def text(disp: Display):
     while disp.run:
         choice = random.random()
 
-        if choice < 0.2:
+        if choice < 0.25:
             # Matrix
             mask = random.choice(matrix_masks)
             matrix(disp, mask)
             time.sleep(2)
             erase(disp)
 
-        elif choice < 0.4:
+        elif choice < 0.45:
             # Floodfill
             text = random.choice(text_masks)
             floodfill(disp, text, bfs=random.random() < 0.5)
