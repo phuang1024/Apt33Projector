@@ -61,6 +61,7 @@ def erase(disp: Display, fill=False):
         # Streak erase
         num_streaks = random.randint(1, 5)
         angle_thres = 0
+        interval = np.interp(num_streaks, [1, 5], [0.03, 0.06])
         while True:
             for x in range(disp.board.shape[1]):
                 for y in range(disp.board.shape[0]):
@@ -69,7 +70,7 @@ def erase(disp: Display, fill=False):
                     if angle < angle_thres:
                         disp.board[y, x] = fill
             angle_thres += 0.05
-            time.sleep(0.06)
+            time.sleep(interval)
             if not disp.run:
                 return
 
@@ -229,17 +230,21 @@ def text(disp: Display):
     illinois = np.load("I.npy")
     toast = np.load("toast.npy")
     boom = np.load("boom.npy")
+    arnie = np.load("arnie.npy")
+    abbey = np.load("abbey.npy")
     ulti_border = generate_border(ulti)
     ulti_and_i = np.logical_and(np.logical_or(ulti, illinois), np.logical_not(np.logical_and(ulti_border, illinois)))
 
     matrix_masks = [
         ulti, illinois, ulti_and_i, ulti_border,
         toast, boom,
+        arnie, abbey,
         np.zeros_like(ulti, dtype=bool)
     ]
     text_masks = [
         ulti, illinois, ulti_and_i, ulti_border,
         toast, boom,
+        arnie, abbey,
         np.logical_xor(ulti, illinois)
     ]
 
