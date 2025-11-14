@@ -8,9 +8,10 @@ import numpy as np
 from display import Display
 from draw import draw_dots
 from make_warp import make_warp_coords
+from escape_room import escape_room_main, escape_room_keydown
 
 
-def worker_thread(display: Display):
+def test_random(display: Display):
     while display.run:
         dots = np.random.rand(27, 81) > 0.5
         img = draw_dots(dots)
@@ -30,9 +31,11 @@ def main():
         threads = [
             Thread(target=make_warp_coords, args=(display,)),
         ]
+
     else:
+        display.add_keydown_callback(escape_room_keydown)
         threads = [
-            Thread(target=worker_thread, args=(display,)),
+            Thread(target=escape_room_main, args=(display,)),
         ]
 
     for thread in threads:

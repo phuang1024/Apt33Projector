@@ -19,8 +19,16 @@ class Display:
     def __init__(self):
         self.load_warp()
 
+        self.keydown_callbacks = []
+
         self.run = True
         self.window = pygame.display.set_mode(WINDOW_RES, pygame.FULLSCREEN)
+
+    def add_keydown_callback(self, callback):
+        """
+        On each pygame.KEYDOWN event, all callbacks are called with args (event.key,)
+        """
+        self.keydown_callbacks.append(callback)
 
     def start(self):
         """
@@ -34,6 +42,8 @@ class Display:
                 if event.type == pygame.QUIT:
                     self.run = False
                 elif event.type == pygame.KEYDOWN:
+                    for callback in self.keydown_callbacks:
+                        callback(event.key)
                     if event.key in (pygame.K_ESCAPE, pygame.K_q):
                         self.run = False
 
@@ -43,10 +53,6 @@ class Display:
         """
         Will warp img to fit view, and display onto window.
         """
-        if not self.run:
-            print("Warning: render() called when display not running.")
-            return
-
         from_pts = np.array([
             [0, 0],
             [0, img.shape[0]],
@@ -65,6 +71,11 @@ class Display:
         warped = cv2.cvtColor(warped, cv2.COLOR_GRAY2RGB)
         warped = warped.swapaxes(0, 1)
         surface = pygame.surfarray.make_surface(warped)
+
+        if not self.run:
+            print("Warning: render() called when display not running.")
+            return
+
         self.window.blit(surface, (0, 0))
 
     def load_warp(self):
