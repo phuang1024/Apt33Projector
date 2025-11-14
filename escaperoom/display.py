@@ -12,29 +12,30 @@ import cv2
 import numpy as np
 import pygame
 
-# Doesn't matter bc full screen.
 WINDOW_RES = (1920, 1080)
 
 
 class Display:
     def __init__(self):
-        self.load_view_coords()
+        self.load_warp()
 
-        self.window = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN)
+        self.run = True
+        self.window = pygame.display.set_mode(WINDOW_RES, pygame.FULLSCREEN)
 
     def start(self):
         """
         Blocking (pygame needs main thread).
         Keep updating display.
         """
-        run = True
-
-        while run:
+        while self.run:
             time.sleep(1 / 60)
             pygame.display.flip()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    run = False
+                    self.run = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key in (pygame.K_ESCAPE, pygame.K_q):
+                        self.run = False
 
         pygame.quit()
 
@@ -42,13 +43,17 @@ class Display:
         """
         Will warp img to fit view, and display onto window.
         """
+        if not self.run:
+            print("Warning: render() called when display not running.")
+            return
+
         from_pts = np.array([
             [0, 0],
             [0, img.shape[0]],
             [img.shape[1], img.shape[0]],
             [img.shape[1], 0],
         ], dtype=np.float32)
-        to_pts = self.view_coords
+        to_pts = self.warp
 
         matrix = cv2.getPerspectiveTransform(from_pts, to_pts)
         warped = cv2.warpPerspective(
@@ -57,21 +62,25 @@ class Display:
             WINDOW_RES,
         )
 
-        surface = pygame.surfarray.make_surface(
-            cv2.cvtColor(warped, cv2.COLOR_BGR2RGB).swapaxes(0, 1)
-        )
+        warped = cv2.cvtColor(warped, cv2.COLOR_GRAY2RGB)
+        warped = warped.swapaxes(0, 1)
+        surface = pygame.surfarray.make_surface(warped)
         self.window.blit(surface, (0, 0))
 
-    def load_view_coords(self):
-        if os.path.isfile("view_coords.json"):
-            with open("view_coords.json", "r") as f:
-                self.view_coords = json.load(f)
+    def load_warp(self):
+        if os.path.isfile("warp.json"):
+            with open("warp.json", "r") as f:
+                self.warp = json.load(f)
         else:
-            print("Warning: No view_coords.json found.")
-            self.view_coords = (
+            print("Warning: No warp.json found.")
+            self.warp = (
                 [0, 0],
                 [0, WINDOW_RES[1]],
                 [WINDOW_RES[0], WINDOW_RES[1]],
                 [WINDOW_RES[0], 0],
             )
-        self.view_coords = np.array(self.view_coords, dtype=np.float32)
+        self.warp = np.array(self.warp, dtype=np.float32)
+
+    def save_warp(self):
+        with open("warp.json", "w") as f:
+            json.dump(self.warp.tolist(), f, indent=4)
