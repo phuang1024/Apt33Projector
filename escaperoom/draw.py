@@ -4,8 +4,11 @@ Utilities for drawing.
 
 import cv2
 import numpy as np
+import pygame
 
 DRAW_RES = (900, 300)
+
+FONT = pygame.font.Font("./Aldrich-Regular.ttf", 150)
 
 
 def blank_img():
@@ -28,3 +31,9 @@ def draw_dots(dots, radius=4):
                 cv2.circle(img, (int(px_x), int(px_y)), radius, 255, -1, cv2.LINE_AA)
 
     return img
+
+
+def draw_text(surf, text, pos):
+    text_surf = FONT.render(text, True, (255, 255, 255))
+    text_rect = text_surf.get_rect(center=pos)
+    surf.blit(text_surf, text_rect)

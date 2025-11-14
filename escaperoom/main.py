@@ -1,9 +1,10 @@
 import argparse
-import random
 import time
 from threading import Thread
 
 import numpy as np
+import pygame
+pygame.init()
 
 import escape_room
 from display import Display
@@ -36,6 +37,8 @@ def main():
         threads = [
             Thread(target=escape_room.main, args=(display,)),
             Thread(target=escape_room.screensaver, args=(display,)),
+            Thread(target=escape_room.show_key, args=(display,)),
+            Thread(target=escape_room.show_unlock, args=(display,)),
         ]
 
     for thread in threads:
