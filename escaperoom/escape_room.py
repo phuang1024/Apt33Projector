@@ -3,12 +3,14 @@ Escape room animations.
 """
 
 import time
+from threading import Thread
 
 import cv2
 import numpy as np
 import pygame
 
 from draw import DRAW_RES, draw_dots, draw_text
+from screensaver import screensaver_main
 
 # Global to track code across threads.
 CODE = []
@@ -50,13 +52,18 @@ def screensaver(display):
     """
     global STATE
 
+    board = np.full((27, 81), False, dtype=bool)
+    anim_thread = Thread(target=screensaver_main, args=(display, board))
+    anim_thread.start()
+
     while display.run:
-        time.sleep(0.5)
-        dots = np.random.rand(27, 81) > 0.5
-        img = draw_dots(dots)
+        time.sleep(1 / 60)
 
         if STATE == "SCREENSAVER":
+            img = draw_dots(board)
             display.render(img)
+
+    anim_thread.join()
 
 
 def show_key(display):
