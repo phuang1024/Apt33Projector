@@ -2,13 +2,24 @@
 Escape room animations.
 """
 
+import time
+
+import numpy as np
 import pygame
+
+from draw import draw_dots
 
 # Global to track code across threads.
 CODE = []
+LAST_KEYDOWN_TIME = 0
+SHOW_KEY = False
 
 
-def escape_room_keydown(key: pygame.key):
+def keydown(key: pygame.key):
+    global CODE, LAST_KEYDOWN_TIME
+
+    LAST_KEYDOWN_TIME = time.time()
+
     if key == pygame.K_BACKSPACE:
         if CODE:
             CODE.pop()
@@ -21,5 +32,22 @@ def escape_room_keydown(key: pygame.key):
     print("Current code:", "".join(CODE))
 
 
-def escape_room_main(display):
-    pass
+def screensaver(display):
+    global SHOW_KEY
+
+    while display.run:
+        time.sleep(0.5)
+        dots = np.random.rand(27, 81) > 0.5
+        img = draw_dots(dots)
+
+        if not SHOW_KEY:
+            display.render(img)
+
+
+def main(display):
+    global SHOW_KEY
+
+    while display.run:
+        time.sleep(1 / 60)
+
+        SHOW_KEY = time.time() - LAST_KEYDOWN_TIME < 5

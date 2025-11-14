@@ -5,19 +5,18 @@ from threading import Thread
 
 import numpy as np
 
+import escape_room
 from display import Display
 from draw import draw_dots
 from make_warp import make_warp_coords
-from escape_room import escape_room_main, escape_room_keydown
 
 
 def test_random(display: Display):
     while display.run:
+        time.sleep(0.5)
         dots = np.random.rand(27, 81) > 0.5
         img = draw_dots(dots)
         display.render(img)
-
-        time.sleep(0.5)
 
 
 def main():
@@ -33,9 +32,10 @@ def main():
         ]
 
     else:
-        display.add_keydown_callback(escape_room_keydown)
+        display.add_keydown_callback(escape_room.keydown)
         threads = [
-            Thread(target=escape_room_main, args=(display,)),
+            Thread(target=escape_room.main, args=(display,)),
+            Thread(target=escape_room.screensaver, args=(display,)),
         ]
 
     for thread in threads:
