@@ -87,8 +87,8 @@ def show_key(display):
             blink = int(time.time() * 5) % 2 == 0
             if blink:
                 x = index_to_x(min(len(CODE), MAX_CODE_LEN - 1))
-                y = DRAW_RES[1] - 90
-                pygame.draw.rect(surf, (255, 255, 255), (int(x - 50), y - 3, 100, 6))
+                y = DRAW_RES[1] - 60
+                pygame.draw.rect(surf, (255, 255, 255), (int(x - 50), y - 4, 100, 8))
 
             # Convert to np array
             img = pygame.surfarray.array3d(surf).swapaxes(0, 1)
