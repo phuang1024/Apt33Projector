@@ -12,7 +12,7 @@ import cv2
 import numpy as np
 import pygame
 
-WINDOW_RES = (1920, 1080)
+WINDOW_RES = (424, 240)
 
 
 class Display:

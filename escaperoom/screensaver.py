@@ -8,6 +8,19 @@ import time
 import numpy as np
 
 
+class NotRandom:
+    def __init__(self, max_num):
+        self.max_num = max_num
+
+        self.values = []
+
+    def get(self):
+        if len(self.values) == 0:
+            self.values = list(range(self.max_num))
+            random.shuffle(self.values)
+        return self.values.pop()
+
+
 # Helper functions
 def get_coords(board):
     """Get a list of (x, y) coordinates that are True."""
@@ -21,11 +34,11 @@ def blank_board():
     return np.zeros((27, 81), dtype=bool)
 
 
-def sequential_fill(board, coords, value):
+def sequential_fill(board, coords, value, sleep=0.0006):
     """Fill sequentially from given (x, y) coords."""
     for x, y in coords:
         board[y, x] = value
-        time.sleep(0.001)
+        time.sleep(sleep)
 
 
 # Animations that fill all squares.
@@ -47,7 +60,7 @@ def circle_fill(board, value=False):
     """Fill squares with increasing radius."""
     r = 0
     while r < 50:
-        r += 0.5
+        r += 0.7
         for x in range(81):
             for y in range(27):
                 if ((x - 40) ** 2 + (y - 13) ** 2) ** 0.5 <= r:
@@ -61,7 +74,7 @@ def radial_fill(board, value=False):
     streaks = random.randint(1, 5)
     angle_thres = 0
     while angle_thres < 2 * np.pi:
-        angle_thres += 0.08
+        angle_thres += 0.1
         for x in range(81):
             for y in range(27):
                 dx = x - 40
@@ -76,13 +89,20 @@ def radial_fill(board, value=False):
                     if angle <= angle_thres:
                         board[y, x] = value
 
-        time.sleep(0.03)
+        time.sleep(0.02)
 
 
 # Animations that create patterns.
+def random_fill_pattern(board, pattern):
+    """Fill pattern with True in a random order."""
+    coords = list(get_coords(pattern))
+    random.shuffle(coords)
+    sequential_fill(board, coords, True, sleep=0.003)
+
+
 def matrix(board, mask):
     density = random.uniform(0.05, 0.1)
-    iters = random.randint(150, 250)
+    iters = random.randint(120, 200)
 
     streaks = np.zeros((81,), dtype=int)
     matrix_board = blank_board()
@@ -123,6 +143,9 @@ def falling_columns(board, pattern, disappear):
 
 
 def floodfill(board, pattern, disappear=False, bfs=False):
+    count = pattern.sum()
+    sleep = min(5 / count, 0.01)
+
     pattern = pattern.copy()
     while pattern.any():
         stack = []
@@ -142,7 +165,7 @@ def floodfill(board, pattern, disappear=False, bfs=False):
             else:
                 continue
 
-            time.sleep(0.02)
+            time.sleep(sleep)
 
 
 def pixel_slide_in(board, pattern, disappear=False, steps=100):
@@ -171,7 +194,7 @@ def pixel_slide_in(board, pattern, disappear=False, steps=100):
             if 0 <= y < board.shape[0] and 0 <= x < board.shape[1]:
                 board[y, x] = True
 
-        time.sleep(0.04)
+        time.sleep(0.02)
 
 
 # Other
@@ -215,26 +238,31 @@ def screensaver_main(display, board):
         pat_ulti_and_i,
     ]
     create_funcs = [
-        #lambda p: matrix(board, np.logical_not(p)),
+        lambda p: random_fill_pattern(board, p),
+        lambda p: matrix(board, np.logical_not(p)),
         #lambda p: falling_columns(board, p, disappear=False),
         lambda p: floodfill(board, p, disappear=False, bfs=random.random() < 0.5),
         lambda p: pixel_slide_in(board, p, disappear=False),
     ]
     erase_funcs = [
-        #random_fill,
-        #left_to_right_fill,
-        #circle_fill,
-        #radial_fill,
+        random_fill,
+        left_to_right_fill,
+        circle_fill,
+        radial_fill,
         #lambda p: falling_columns(board, p, disappear=True),
         lambda p: floodfill(board, p, disappear=True, bfs=random.random() < 0.5),
         lambda p: pixel_slide_in(board, p, disappear=True),
     ]
 
+    pattern_rand = NotRandom(len(patterns))
+    create_rand = NotRandom(len(create_funcs))
+    erase_rand = NotRandom(len(erase_funcs))
+
     while display.run:
-        pattern = random.choice(patterns)
-        random.choice(create_funcs)(pattern)
+        pattern = patterns[pattern_rand.get()]
+        create_funcs[create_rand.get()](pattern)
         time.sleep(2)
 
-        random.choice(erase_funcs)(board)
+        erase_funcs[erase_rand.get()](board)
         board[:] = False
         time.sleep(2)

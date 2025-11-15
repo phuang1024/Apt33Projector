@@ -15,7 +15,7 @@ from screensaver import screensaver_main
 # Global to track code across threads.
 CODE = []
 MAX_CODE_LEN = 4
-CODE_ANS = "1111"
+CODE_ANS = "2038"
 
 LAST_KEYDOWN_TIME = 0
 UNLOCK_TIME = 0
@@ -121,7 +121,7 @@ def show_unlock(display):
             for _ in range(2):
                 ret, frame = video.read()
             if not ret:
-                time.sleep(10)
+                time.sleep(3)
                 video.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 continue
 
@@ -131,7 +131,7 @@ def show_unlock(display):
         else:
             video.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-        time.sleep(0.05 if STATE == "UNLOCK" else 0.5)
+        time.sleep(0.07 if STATE == "UNLOCK" else 0.5)
 
 
 def main(display):
@@ -151,7 +151,7 @@ def main(display):
                 UNLOCK_TIME = time.time()
 
         else:
-            if time.time() - UNLOCK_TIME > 120:
+            if time.time() - UNLOCK_TIME > 60:
                 STATE = "SCREENSAVER"
 
         if STATE == "SCREENSAVER":
